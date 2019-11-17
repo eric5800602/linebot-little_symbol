@@ -1,1 +1,1 @@
-web: python RunFlask.py
+web: python3 app.py
