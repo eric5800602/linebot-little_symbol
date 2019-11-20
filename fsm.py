@@ -23,7 +23,8 @@ class TocMachine(GraphMachine):
         reply_token = event.reply_token
         send_image_url(reply_token, "Trigger state1")
         self.go_back()
-
+    def on_exit_sendmeme(self):
+        print("Leaving state1")
     def on_enter_state1(self, event):
         print("I'm entering state1")
 
