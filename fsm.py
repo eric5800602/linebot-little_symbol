@@ -14,6 +14,15 @@ class TocMachine(GraphMachine):
     def is_going_to_state2(self, event):
         text = event.message.text
         return text.lower() == "go to state2"
+    def is_going_to_sendmeme(self, event):
+        text = event.message.text
+        return text.lower() == "圖片"
+    def on_enter_sendmeme(self, event):
+        print("sendmeme")
+
+        reply_token = event.reply_token
+        send_image_url(reply_token, "Trigger state1")
+        self.go_back()
 
     def on_enter_state1(self, event):
         print("I'm entering state1")
