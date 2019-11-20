@@ -16,7 +16,7 @@ def send_text_message(reply_token, text):
 
 def send_image_url(reply_token, img_url):
     line_bot_api = LineBotApi(channel_access_token)
-    client.replyMessage(reply_token, 
+    line_bot_api.replyMessage(reply_token, 
     {
         type: 'image',
         originalContentUrl: 'https://developers.line.biz/media/messaging-api/messages/image-full-04fbba55.png',
