@@ -19,7 +19,6 @@ class TocMachine(GraphMachine):
         return text.lower() == "圖片"
     def on_enter_sendmeme(self, event):
         print("sendmeme")
-
         reply_token = event.reply_token
         send_image_url(reply_token, "Trigger state1")
         self.go_back()

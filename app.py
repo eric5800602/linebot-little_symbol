@@ -34,7 +34,7 @@ machine = TocMachine(
             "dest": "sendmeme",
             "conditions": "is_going_to_sendmeme",
         },
-        {"trigger": "go_back", "source": ["state1", "state2"], "dest": "user"},
+        {"trigger": "go_back", "source": ["state1", "state2","sendmeme"], "dest": "user"},
     ],
     initial="user",
     auto_transitions=False,
