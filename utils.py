@@ -33,7 +33,7 @@ def send_image_url(reply_token, img_url):
         text = 'There is nothing funny.'
         line_bot_api.reply_message(reply_token, TextSendMessage(text=text))
     else:
-        line_bot_api.reply_message(reply_token,ImageSendMessage(original_content_url=target, preview_image_url=target)
+        line_bot_api.reply_message(reply_token,ImageSendMessage(original_content_url=target, preview_image_url=target))
     
     return "OK"
 """
