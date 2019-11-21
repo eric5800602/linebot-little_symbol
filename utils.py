@@ -23,11 +23,13 @@ def send_image_url(reply_token, img_url):
     soup = BeautifulSoup(res.text,'lxml')
     #print(soup2.prettify())
     imgs = soup.find_all(class_='img-fluid')
+    imglist =[]
     target =''
     for img in imgs:
             if 'src' in img.attrs:
                 if img['src'].endswith('.jpg'):
-                    target = img['src']
+                    imglist.append(img['src'])
+    target = random.choice(imglist)
     if(target == ''):
         print('There is nothing funny.')
         text = 'There is nothing funny.'
