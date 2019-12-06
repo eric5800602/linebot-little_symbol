@@ -1,3 +1,7 @@
 graphviz
 libgraphviz-dev
 pkg-config
+libsm6
+libxrender1
+libfontconfig1
+libice6
