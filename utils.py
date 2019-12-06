@@ -1,35 +1,52 @@
-import os
+import tempfile,os
 import random
 
 from linebot import LineBotApi, WebhookParser
 from linebot.models import *
-from bs4 import BeautifulSoup
-import requests
+from dotenv import load_dotenv
+from imgurpython import ImgurClient
 
+load_dotenv()
+client_id = os.getenv("client_id", None)
+client_secret = os.getenv("client_secret", None)
+access_token = os.getenv("access_token",None)
+refresh_token = os.getenv("refresh_token",None)
 channel_access_token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", None)
 
 
-def send_text_message(reply_token, text):
+def send_text_message(reply_token,text):
     line_bot_api = LineBotApi(channel_access_token)
     line_bot_api.reply_message(reply_token, TextSendMessage(text=text))
 
     return "OK"
-
-
-def send_image_url(reply_token, img_url):
+def send_button_template(reply_token):
     line_bot_api = LineBotApi(channel_access_token)
-    head_Html = 'https://memes.tw/wtf?sort=hot&page='+str(random.randint(1,3))
-    res = requests.get(head_Html, timeout=30)
-    soup = BeautifulSoup(res.text,'lxml')
-    #print(soup2.prettify())
-    imgs = soup.find_all(class_='img-fluid')
-    imglist =[]
-    target =''
-    for img in imgs:
-            if 'src' in img.attrs:
-                if img['src'].endswith('.jpg'):
-                    imglist.append(img['src'])
-    target = random.choice(imglist)
+    buttons_template = TemplateSendMessage(
+        alt_text='我會做：',
+        template=ButtonsTemplate(
+            title='我會做：',
+            text='告訴我能為你做甚麼',
+            thumbnail_image_url='https://i.imgur.com/2zh0E28.png',
+            actions=[
+                MessageTemplateAction(
+                    label='讓你看看我的fsm',
+                    text='fsm'
+                ),
+                MessageTemplateAction(
+                    label='來點正能量吧',
+                    text='圖片'
+                )
+                ]
+            )
+        )
+    line_bot_api.reply_message(reply_token, buttons_template)
+    return "OK"
+def send_yes_no_button(id,template):
+    line_bot_api = LineBotApi(channel_access_token)
+    line_bot_api.push_message(id, template)
+    return "OK"
+def send_image_url(reply_token, target):
+    line_bot_api = LineBotApi(channel_access_token)
     if(target == ''):
         print('There is nothing funny.')
         text = 'There is nothing funny.'
@@ -38,7 +55,37 @@ def send_image_url(reply_token, img_url):
         line_bot_api.reply_message(reply_token,ImageSendMessage(original_content_url=target, preview_image_url=target))
     
     return "OK"
-"""
-def send_button_message(id, text, buttons):
-    pass
-"""
+def send_img(id, target):
+    line_bot_api = LineBotApi(channel_access_token)
+    line_bot_api.push_message(id,ImageSendMessage(original_content_url=target, preview_image_url=target))
+    return "OK"
+
+def push_msg_img(id, target, text):
+    line_bot_api = LineBotApi(channel_access_token)
+    line_bot_api.push_message(id, TextSendMessage(text))
+    line_bot_api.push_message(id,ImageSendMessage(original_content_url=target, preview_image_url=target))
+    return "OK"
+def push_msg(id,text):
+    line_bot_api = LineBotApi(channel_access_token)
+    line_bot_api.push_message(id,TextSendMessage(text))
+    return "ok"
+def upload_img(event):
+    line_bot_api = LineBotApi(channel_access_token)
+    static_tmp_path = os.path.join(os.path.dirname(__file__), 'static')
+    ext = 'png'
+    message_content = line_bot_api.get_message_content(event.message.id)
+    with tempfile.NamedTemporaryFile(dir=static_tmp_path, prefix=ext + '-', delete=False) as tf:
+        for chunk in message_content.iter_content():
+            tf.write(chunk)
+        tempfile_path = tf.name
+
+    dist_path = tempfile_path + '.' + ext
+    dist_name = os.path.basename(dist_path)
+    os.rename(tempfile_path, dist_path)
+    client = ImgurClient(client_id, client_secret, access_token, refresh_token)
+    path = os.path.join('static', dist_name)
+    upimg = client.upload_from_path(path, config=None, anon=False)
+    os.remove(path)
+    print(upimg['link'])
+    push_msg(event.source.user_id,"上傳成功")
+    return upimg  
