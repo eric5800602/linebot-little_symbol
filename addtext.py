@@ -6,7 +6,7 @@ def cv2ImgAddText(img, text, x, y, textColor=(255, 255, 255), textSize=30):
     if (isinstance(img, numpy.ndarray)):  #判断是否OpenCV图片类型
         img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype("font/simsun.ttc", textSize, encoding="utf-8")
+    font = ImageFont.truetype(".font/simsun.ttc", textSize, encoding="utf-8")
     #draw.text((left, top), text, textColor, font=fontText)
     shadowcolor = (0,0,0)
     # thin border
