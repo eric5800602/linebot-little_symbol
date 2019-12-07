@@ -10,6 +10,7 @@ import random
 import psycopg2
 import cv2
 import numpy as np
+import ast
 from dotenv import load_dotenv
    
 class TocMachine(GraphMachine):
@@ -173,15 +174,15 @@ class TocMachine(GraphMachine):
             count=count+1
             target = row[2] #original url
             num = row[3] #number of text
-            x = row[4] #pos_x
-            y = row[5] #pos_y
+            pos = row[4]
             if(count == number_of_template):
                 break
         print(target)
         global img
         img = url_to_image(target)
+        res = ast.literal_eval(pos)
         for i in range(num):
-            img = cv2ImgAddText(img,text[i],x[i],y[i])
+            img = cv2ImgAddText(img,text[i],res[i][0],res[i][1])
         conn.commit()
         cursor.close()
         conn.close()
@@ -286,16 +287,14 @@ class TocMachine(GraphMachine):
     def on_enter_decide_format(self,event):
         text = event.message.text
         text = text.split()
-        x = set()
-        y = set()
+        path = []
         for i in range(2,int(text[1])*2+2,2):
-            x.add(int(text[i]))
-            y.add(int(text[i+1]))
+            path.append(tuple([int(text[i]),int(text[i+1])]))
         conn = psycopg2.connect(database="dde2dm8s4unot",user="suxfxobluvhxtc",password="9479908a10b5f0d1bf0943a85bd7f815b5ecc90c9b26db2add40c4f44a5f23cd",host="ec2-174-129-205-197.compute-1.amazonaws.com",port ="5432")
         print("Connection established")
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO image_template (name,url,original_url,count,x,y)\
-        VALUES ('{0}','{1}','{2}','{3}','{4}','{5}')".format(text[0],upimg2['link'],upimg['link'],int(text[1]),x,y))
+        cursor.execute("INSERT INTO image_template (name,url,original_url,count,site)\
+        VALUES ('{0}','{1}','{2}','{3}','{4}')".format(text[0],upimg2['link'],upimg['link'],int(text[1]),path))
         conn.commit()
         cursor.close()
         conn.close()
