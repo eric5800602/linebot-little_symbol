@@ -4,4 +4,9 @@ pkg-config
 libsm6
 libxrender1
 libfontconfig1
-libice6 
+libice6
+libgd-dev
+fontconfig
+libcairo2-dev
+libpango1.0-dev
+libgts-dev
