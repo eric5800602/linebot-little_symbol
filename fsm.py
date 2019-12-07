@@ -11,15 +11,13 @@ import psycopg2
 import cv2
 import numpy as np
 from dotenv import load_dotenv
-
-load_dotenv()
-client_id = os.getenv("client_id", None)
-client_secret = os.getenv("client_secret", None)
-access_token = os.getenv("access_token",None)
-refresh_token = os.getenv("refresh_token",None)
    
 class TocMachine(GraphMachine):
- 
+    load_dotenv()
+    client_id = os.getenv("client_id", None)
+    client_secret = os.getenv("client_secret", None)
+    access_token = os.getenv("access_token",None)
+    refresh_token = os.getenv("refresh_token",None)
     def __init__(self, **machine_configs):
         self.machine = GraphMachine(model=self, **machine_configs)
         
