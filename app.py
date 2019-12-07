@@ -145,8 +145,8 @@ def webhook_handler():
 
 @app.route("/show-fsm", methods=["GET"])
 def show_fsm():
-    machine.get_graph().draw("fsm.jepg", prog="dot", format="jepg")
-    return send_file("fsm.jepg", mimetype="image/jepg")
+    machine.get_graph().draw("fsm.svg", prog="svg", format="svg")
+    return send_file("fsm.svg", mimetype="image/svg")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
