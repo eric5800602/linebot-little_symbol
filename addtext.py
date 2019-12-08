@@ -4,6 +4,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 def cv2ImgAddText(img, text, x, y, textColor=(255, 255, 255), textSize=30):
     if (isinstance(img, numpy.ndarray)):  #判断是否OpenCV图片类型
+        x = int(x * (img.shape[0]/500))
+        y = int(y * (img.shape[1]/650))
+        textSize = int(30*(img.shape[0]/500)* (img.shape[1]/650))
         img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype(".font/simsun.ttc", textSize, encoding="utf-8")

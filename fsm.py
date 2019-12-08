@@ -1,5 +1,5 @@
 from transitions.extensions import GraphMachine
-from linebot.models import *
+from linebot.models import *    
 from utils import *
 from bs4 import BeautifulSoup
 from url_image import url_to_image
@@ -30,13 +30,74 @@ class TocMachine(GraphMachine):
     def is_going_to_what(self, event):
         text = event.message.text
         return text.lower() == "你會做什麼"
+    def is_going_to_image_send(self,event):
+        text = event.message.text
+        return text.lower() == "來點梗圖"
+    def on_enter_image_send(self,event):
+        buttons_template = TemplateSendMessage(
+        alt_text='各種圖片',
+        template=ButtonsTemplate(
+            title='各種圖片',
+            text='你想看什麼',
+            thumbnail_image_url='https://i.imgur.com/2zh0E28.png',
+            actions=[
+                MessageTemplateAction(
+                    label='我的作品',
+                    text='我的作品'
+                ),
+                MessageTemplateAction(
+                    label='網路熱門',
+                    text='網路熱門'
+                ),
+                MessageTemplateAction(
+                    label='其他人上傳了什麼?',
+                    text='其他人上傳了什麼'
+                )
+            ]
+            )
+        )
+        send_button_template(event.reply_token,buttons_template)
+    def is_going_to_my_works(self,event):
+        text = event.message.text
+        return text.lower() == "我的作品"
+    def on_enter_my_works(self,event):
+        conn = psycopg2.connect(database="dde2dm8s4unot",user="suxfxobluvhxtc",password="9479908a10b5f0d1bf0943a85bd7f815b5ecc90c9b26db2add40c4f44a5f23cd",host="ec2-174-129-205-197.compute-1.amazonaws.com",port ="5432")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM image_list WHERE user_id = '{0}'".format(event.source.user_id))
+        rows = cursor.fetchall()
+        for row in rows:
+            list= row[1]
+        rand = random.randint(0,len(row[1])-1)
+        send_img(event.source.user_id,row[1][rand])
+        buttons_template = TemplateSendMessage(
+        alt_text='我會做：',
+        template=ButtonsTemplate(
+            title='我會做：',
+            text='告訴我能為你做甚麼',
+            thumbnail_image_url='https://i.imgur.com/2zh0E28.png',
+            actions=[
+                MessageTemplateAction(
+                    label='再來一張',
+                    text='再來一張'
+                ),
+                MessageTemplateAction(
+                    label='回到主畫面',
+                    text='回到主畫面'
+                ),
+                MessageTemplateAction(
+                    label='我也想貢獻',
+                    text='我要貢獻'
+                )
+            ]
+            )
+        )
+        send_button_template(event.reply_token,buttons_template)
     #send meme state
     def is_going_to_sendmeme(self, event):
         text = event.message.text
-        return text.lower() == "圖片"
+        return text.lower() == "網路熱門"
     def on_enter_sendmeme(self, event):
         print("sendmeme")
-        reply_token = event.reply_token
         head_Html = 'https://memes.tw/wtf?sort=hot&page='+str(random.randint(1,3))
         res = requests.get(head_Html, timeout=30)
         soup = BeautifulSoup(res.text,'lxml')
@@ -49,16 +110,82 @@ class TocMachine(GraphMachine):
                     if img['src'].endswith('.jpg'):
                         imglist.append(img['src'])
         target = random.choice(imglist)
-        send_image_url(reply_token,target)
-        self.go_back()
+        send_img(event.source.user_id,target)
+        buttons_template = TemplateSendMessage(
+        alt_text='我會做：',
+        template=ButtonsTemplate(
+            title='我會做：',
+            text='告訴我能為你做甚麼',
+            thumbnail_image_url='https://i.imgur.com/2zh0E28.png',
+            actions=[
+                MessageTemplateAction(
+                    label='再來一張',
+                    text='再來一張'
+                ),
+                MessageTemplateAction(
+                    label='回到主畫面',
+                    text='回到主畫面'
+                ),
+                MessageTemplateAction(
+                    label='我也想貢獻',
+                    text='我要貢獻'
+                )
+            ]
+            )
+        )
+        send_button_template(event.reply_token,buttons_template)
     def on_exit_sendmeme(self):
         print("Leaving sendmeme")
 
+    def is_going_to_see_others_upload(self, event):
+        text = event.message.text
+        return text.lower() == "其他人上傳了什麼"
+    def on_enter_see_others_upload(self, event):
+        conn = psycopg2.connect(database="dde2dm8s4unot",user="suxfxobluvhxtc",password="9479908a10b5f0d1bf0943a85bd7f815b5ecc90c9b26db2add40c4f44a5f23cd",host="ec2-174-129-205-197.compute-1.amazonaws.com",port ="5432")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM image_list WHERE user_id != '{0}'").format(event.source.user_id)
+        rows = cursor.fetchall()
+        row = random.choice(rows)
+        send_img(event.source.user_id,random.choice(row[1]))
+        buttons_template = TemplateSendMessage(
+        alt_text='我會做：',
+        template=ButtonsTemplate(
+            title='我會做：',
+            text='告訴我能為你做甚麼',
+            thumbnail_image_url='https://i.imgur.com/2zh0E28.png',
+            actions=[
+                MessageTemplateAction(
+                    label='再來一張',
+                    text='再來一張'
+                ),
+                MessageTemplateAction(
+                    label='回到主畫面',
+                    text='回到主畫面'
+                ),
+                MessageTemplateAction(
+                    label='我也想貢獻',
+                    text='我要貢獻'
+                )
+            ]
+            )
+        )
+        send_button_template(event.reply_token,buttons_template)
+    def on_exit_see_others_upload(self):
+        print("Leaving see_others_upload")
+    
+    def is_going_to_image_send_again(self,event):
+        text = event.message.text
+        return text.lower() == "再來一張"
+    def is_going_to_main(self,event):
+        text = event.message.text
+        if text.lower() == "回到主畫面":
+            push_msg(event.source.user_id,"已回到主畫面")
+        return text.lower() == "回到主畫面"
     def on_enter_fsm(self, event):
         print("I'm entering fsm")
 
         reply_token = event.reply_token
-        send_image_url(reply_token,"https://symbol-linebot.herokuapp.com/show-fsm")
+        send_image_url(reply_token,"https://d4e1474c.ngrok.io/show-fsm")#"https://symbol-linebot.herokuapp.com/show-fsm")
         self.go_back()
 
     def on_exit_fsm(self):
@@ -67,7 +194,25 @@ class TocMachine(GraphMachine):
     def on_enter_what(self, event):
         print("I'm entering what")
         reply_token = event.reply_token
-        send_button_template(reply_token)
+        buttons_template = TemplateSendMessage(
+        alt_text='我會做：',
+        template=ButtonsTemplate(
+            title='我會做：',
+            text='告訴我能為你做甚麼',
+            thumbnail_image_url='https://i.imgur.com/2zh0E28.png',
+            actions=[
+                MessageTemplateAction(
+                    label='讓你看看我的fsm',
+                    text='fsm'
+                ),
+                MessageTemplateAction(
+                    label='來點正能量吧',
+                    text='來點梗圖'
+                )
+                ]
+            )
+        )
+        send_button_template(reply_token,buttons_template)
         self.go_back()
 
     def on_exit_what(self):
@@ -117,12 +262,14 @@ class TocMachine(GraphMachine):
         rows = cursor.fetchall()
         target = ''
         count = 0
+        global target_template
+        target_template = int(text)
         global number_of_current_text
         for row in rows:
             count=count+1
             target = row[1]
             number_of_current_text = row[3]
-            if(count == text):
+            if(count == target_template):
                 break
         conn.commit()
         cursor.close()
@@ -175,7 +322,7 @@ class TocMachine(GraphMachine):
             target = row[2] #original url
             num = row[3] #number of text
             pos = row[4]
-            if(count == number_of_template):
+            if(count == target_template):
                 break
         print(target)
         global img
@@ -257,7 +404,9 @@ class TocMachine(GraphMachine):
         return get
     def on_enter_get_image(self,event):
         global upimg
-        upimg = upload_img(event)
+        global width
+        global height
+        [upimg,width,height] = upload_img(event)
         push_msg(event.source.user_id,"現在傳給我模板圖片,他必須有號碼標示")
     def on_exit_get_image(self,event):
         print('exit get_image')
@@ -271,7 +420,7 @@ class TocMachine(GraphMachine):
         return get
     def on_enter_get_image2(self,event):
         global upimg2
-        upimg2 = upload_img(event)
+        [upimg2,width2,height2] = upload_img(event)
         push_msg(event.source.user_id,"為他起個名字吧,並決定文字格子數量以及位置後確認上傳\n形式：標題 文字格子數量 位置1x 位置1y 位置2x 位置2y ......\n範例：亞洲人之恥 3 20 190 120 417 155 625")
     def on_exit_get_image2(self,event):
         print('exit get_image')
@@ -323,6 +472,7 @@ class TocMachine(GraphMachine):
     
     def is_going_to_goback_from_decide_format(self,event):
         text = event.message.text
+        push_msg(event.source.user_id,"已回到主畫面")
         return text.lower() == "回到主畫面"
     def is_going_to_add_template_again(self,event):
         text = event.message.text

@@ -11,69 +11,7 @@ from fsm import TocMachine
 from utils import send_text_message
 
 load_dotenv()
-
-
-machine = TocMachine(
-    states=["user", "fsm", "what","sendmeme","create_img","choose_template","confirm","add_template","get_image","get_image2","decide_format"],
-    transitions=[
-        {
-            "trigger": "advance",
-            "source": "user",
-            "dest": "fsm",
-            "conditions": "is_going_to_fsm",
-        },
-        {
-            "trigger": "advance",
-            "source": "user",
-            "dest": "what",
-            "conditions": "is_going_to_what",
-        },
-        {
-            "trigger": "advance",
-            "source": "user",
-            "dest": "sendmeme",
-            "conditions": "is_going_to_sendmeme",
-        },
-        {
-            "trigger": "advance",
-            "source": "user",
-            "dest": "create_img",
-            "conditions": "is_going_to_create_img",
-        },
-        {
-            "trigger": "advance",
-            "source": "create_img",
-            "dest": "user",
-            "conditions": "is_going_to_initial",
-        },
-        {
-            "trigger": "advance",
-            "source": "create_img",
-            "dest": "choose_template",
-            "conditions": "is_going_to_choose_template",
-        },
-        {
-            "trigger": "advance",
-            "source": "choose_template",
-            "dest": "create_img",
-            "conditions": "is_going_to_cancel",
-        },
-        {"trigger": "advance","source": "user","dest": "add_template","conditions": "is_going_to_add_template",},
-        {"trigger": "advance","source": "add_template","dest": "get_image","conditions": "is_going_to_get_image",},
-        {"trigger": "advance","source": "get_image","dest": "get_image2","conditions": "is_going_to_get_image2",},
-        {"trigger": "advance","source": "get_image2","dest": "decide_format","conditions": "is_going_to_decide_format",},
-        {"trigger": "advance","source": "decide_format","dest": "user","conditions": "is_going_to_goback_from_decide_format",},
-        {"trigger": "advance","source": "decide_format","dest": "add_template","conditions": "is_going_to_add_template_again",},
-        {"trigger": "advance","source": "choose_template","dest": "confirm","conditions": "is_going_to_confirm",},
-        {"trigger": "advance","source": "confirm","dest": "user","conditions": "is_going_to_return",},
-        {"trigger": "advance","source": "confirm","dest": "choose_template","conditions": "is_going_to_again",},
-        {"trigger": "go_back", "source": ["fsm", "what","sendmeme","create_img","choose_template"], "dest": "user"},
-    ],
-    initial="user",
-    auto_transitions=False,
-    show_conditions=True,
-)
-
+machine = {}
 app = Flask(__name__, static_url_path="")
 
 
@@ -132,11 +70,71 @@ def webhook_handler():
         abort(400)
     # if event is MessageEvent and message is TextMessage, then echo text
     for event in events:
+        global sender_id
+        sender_id = event.source.user_id
+        if sender_id not in machine:
+            machine[sender_id] = TocMachine(
+                states=["user", "fsm", "what","sendmeme","create_img","choose_template","confirm","add_template","get_image","get_image2","decide_format","my_works","see_others_upload","image_send"],
+                transitions=[
+                    {"trigger": "advance","source": "user","dest": "fsm","conditions": "is_going_to_fsm",},
+                    {"trigger": "advance","source": "user","dest": "what","conditions": "is_going_to_what",},
+                    {"trigger": "advance","source": "user","dest": "image_send","conditions": "is_going_to_image_send",},
+                    {"trigger": "advance","source": "image_send","dest": "sendmeme","conditions": "is_going_to_sendmeme",},
+                    {"trigger": "advance","source": "image_send","dest": "my_works","conditions": "is_going_to_my_works",},
+                    {"trigger": "advance","source": "image_send","dest": "see_others_upload","conditions": "is_going_to_see_others_upload",},
+                    {"trigger": "advance","source": "sendmeme","dest": "sendmeme","conditions": "is_going_to_image_send_again",},
+                    {"trigger": "advance","source": "my_works","dest": "my_works","conditions": "is_going_to_image_send_again",},
+                    {"trigger": "advance","source": "see_others_upload","dest": "see_others_upload","conditions": "is_going_to_image_send_again",},
+                    {"trigger": "advance","source": "sendmeme","dest": "user","conditions": "is_going_to_main",},
+                    {"trigger": "advance","source": "my_works","dest": "user","conditions": "is_going_to_main",},
+                    {"trigger": "advance","source": "see_others_upload","dest": "user","conditions": "is_going_to_main",},
+                    {"trigger": "advance","source": "sendmeme","dest": "create_img","conditions": "is_going_to_create_img",},
+                    {"trigger": "advance","source": "my_works","dest": "create_img","conditions": "is_going_to_create_img",},
+                    {"trigger": "advance","source": "see_others_upload","dest": "create_img","conditions": "is_going_to_create_img",},
+                    {
+                        "trigger": "advance",
+                        "source": "user",
+                        "dest": "create_img",
+                        "conditions": "is_going_to_create_img",
+                    },
+                    {
+                        "trigger": "advance",
+                        "source": "create_img",
+                        "dest": "user",
+                        "conditions": "is_going_to_initial",
+                    },
+                    {
+                        "trigger": "advance",
+                        "source": "create_img",
+                        "dest": "choose_template",
+                        "conditions": "is_going_to_choose_template",
+                    },
+                    {
+                        "trigger": "advance",
+                        "source": "choose_template",
+                        "dest": "create_img",
+                        "conditions": "is_going_to_cancel",
+                    },
+                    {"trigger": "advance","source": "user","dest": "add_template","conditions": "is_going_to_add_template",},
+                    {"trigger": "advance","source": "add_template","dest": "get_image","conditions": "is_going_to_get_image",},
+                    {"trigger": "advance","source": "get_image","dest": "get_image2","conditions": "is_going_to_get_image2",},
+                    {"trigger": "advance","source": "get_image2","dest": "decide_format","conditions": "is_going_to_decide_format",},
+                    {"trigger": "advance","source": "decide_format","dest": "user","conditions": "is_going_to_goback_from_decide_format",},
+                    {"trigger": "advance","source": "decide_format","dest": "add_template","conditions": "is_going_to_add_template_again",},
+                    {"trigger": "advance","source": "choose_template","dest": "confirm","conditions": "is_going_to_confirm",},
+                    {"trigger": "advance","source": "confirm","dest": "user","conditions": "is_going_to_return",},
+                    {"trigger": "advance","source": "confirm","dest": "choose_template","conditions": "is_going_to_again",},
+                    {"trigger": "go_back", "source": ["fsm", "what","sendmeme","create_img","choose_template"], "dest": "user"},
+                ],
+                initial="user",
+                auto_transitions=False,
+                show_conditions=True,
+            )
         if not isinstance(event, MessageEvent):
             continue
-        print("\nFSM STATE: "+machine.state)
+        print("\nFSM STATE: "+machine[sender_id].state)
         print("REQUEST BODY: \n"+body)
-        response = machine.advance(event)
+        response = machine[sender_id].advance(event)
         if response == False:
             send_text_message(event.reply_token, "Not Entering any State")
 
@@ -145,7 +143,7 @@ def webhook_handler():
 
 @app.route("/show-fsm", methods=["GET"])
 def show_fsm():
-    machine.get_graph().draw("fsm.png", prog="dot", format="png")
+    machine[sender_id].get_graph().draw("fsm.png", prog="dot", format="png")
     return send_file("fsm.png", mimetype="image/png")
 
 if __name__ == "__main__":

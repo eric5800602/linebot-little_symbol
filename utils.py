@@ -5,6 +5,7 @@ from linebot import LineBotApi, WebhookParser
 from linebot.models import *
 from dotenv import load_dotenv
 from imgurpython import ImgurClient
+from PIL import Image
 
 load_dotenv()
 client_id = os.getenv("client_id", None)
@@ -19,26 +20,8 @@ def send_text_message(reply_token,text):
     line_bot_api.reply_message(reply_token, TextSendMessage(text=text))
 
     return "OK"
-def send_button_template(reply_token):
+def send_button_template(reply_token,buttons_template):
     line_bot_api = LineBotApi(channel_access_token)
-    buttons_template = TemplateSendMessage(
-        alt_text='我會做：',
-        template=ButtonsTemplate(
-            title='我會做：',
-            text='告訴我能為你做甚麼',
-            thumbnail_image_url='https://i.imgur.com/2zh0E28.png',
-            actions=[
-                MessageTemplateAction(
-                    label='讓你看看我的fsm',
-                    text='fsm'
-                ),
-                MessageTemplateAction(
-                    label='來點正能量吧',
-                    text='圖片'
-                )
-                ]
-            )
-        )
     line_bot_api.reply_message(reply_token, buttons_template)
     return "OK"
 def send_yes_no_button(id,template):
@@ -78,14 +61,17 @@ def upload_img(event):
         for chunk in message_content.iter_content():
             tf.write(chunk)
         tempfile_path = tf.name
+        
 
     dist_path = tempfile_path + '.' + ext
     dist_name = os.path.basename(dist_path)
     os.rename(tempfile_path, dist_path)
+    im = Image.open(dist_path)
+    width, height = im.size
     client = ImgurClient(client_id, client_secret, access_token, refresh_token)
     path = os.path.join('static', dist_name)
     upimg = client.upload_from_path(path, config=None, anon=False)
     os.remove(path)
     print(upimg['link'])
     push_msg(event.source.user_id,"上傳成功")
-    return upimg  
+    return upimg ,width,height 
