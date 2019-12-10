@@ -74,7 +74,7 @@ def webhook_handler():
         sender_id = event.source.user_id
         if sender_id not in machine:
             machine[sender_id] = TocMachine(
-                states=["user", "fsm", "what","sendmeme","create_img","choose_template","confirm","add_template","get_image","get_image2","decide_format","my_works","see_others_upload","image_send"],
+                states=["user", "fsm", "what","sendmeme","create_img","choose_template","confirm","add_template","get_image","get_image2","decide_format","my_works","see_others_upload","image_send","input_username","which_needfix","adjust","confirm_again"],
                 transitions=[
                     {"trigger": "advance","source": "user","dest": "fsm","conditions": "is_going_to_fsm",},
                     {"trigger": "advance","source": "user","dest": "what","conditions": "is_going_to_what",},
@@ -83,7 +83,12 @@ def webhook_handler():
                     {"trigger": "advance","source": "image_send","dest": "my_works","conditions": "is_going_to_my_works",},
                     {"trigger": "advance","source": "image_send","dest": "see_others_upload","conditions": "is_going_to_see_others_upload",},
                     {"trigger": "advance","source": "sendmeme","dest": "sendmeme","conditions": "is_going_to_image_send_again",},
-                    {"trigger": "advance","source": "my_works","dest": "my_works","conditions": "is_going_to_image_send_again",},
+                    {"trigger": "advance","source": "sendmeme","dest": "my_works","conditions": "is_going_to_my_works",},
+                    {"trigger": "advance","source": "sendmeme","dest": "see_others_upload","conditions": "is_going_to_see_others_upload",},
+                    {"trigger": "advance","source": "my_works","dest": "sendmeme","conditions": "is_going_to_sendmeme",},
+                    {"trigger": "advance","source": "my_works","dest": "see_others_upload","conditions": "is_going_to_see_others_upload",},
+                    {"trigger": "advance","source": "see_others_upload","dest": "sendmeme","conditions": "is_going_to_sendmeme",},
+                    {"trigger": "advance","source": "see_others_upload","dest": "my_works","conditions": "is_going_to_my_works",},
                     {"trigger": "advance","source": "see_others_upload","dest": "see_others_upload","conditions": "is_going_to_image_send_again",},
                     {"trigger": "advance","source": "sendmeme","dest": "user","conditions": "is_going_to_main",},
                     {"trigger": "advance","source": "my_works","dest": "user","conditions": "is_going_to_main",},
@@ -91,31 +96,14 @@ def webhook_handler():
                     {"trigger": "advance","source": "sendmeme","dest": "create_img","conditions": "is_going_to_create_img",},
                     {"trigger": "advance","source": "my_works","dest": "create_img","conditions": "is_going_to_create_img",},
                     {"trigger": "advance","source": "see_others_upload","dest": "create_img","conditions": "is_going_to_create_img",},
-                    {
-                        "trigger": "advance",
-                        "source": "user",
-                        "dest": "create_img",
-                        "conditions": "is_going_to_create_img",
-                    },
-                    {
-                        "trigger": "advance",
-                        "source": "create_img",
-                        "dest": "user",
-                        "conditions": "is_going_to_initial",
-                    },
-                    {
-                        "trigger": "advance",
-                        "source": "create_img",
-                        "dest": "choose_template",
-                        "conditions": "is_going_to_choose_template",
-                    },
-                    {
-                        "trigger": "advance",
-                        "source": "choose_template",
-                        "dest": "create_img",
-                        "conditions": "is_going_to_cancel",
-                    },
-                    {"trigger": "advance","source": "user","dest": "add_template","conditions": "is_going_to_add_template",},
+                    {"trigger": "advance","source": "user","dest": "create_img","conditions": "is_going_to_create_img",},
+                    {"trigger": "advance","source": "create_img","dest": "user","conditions": "is_going_to_initial",},
+                    {"trigger": "advance","source": "create_img","dest": "create_img","conditions": "is_going_to_next_page",},
+                    {"trigger": "advance","source": "create_img","dest": "choose_template","conditions": "is_going_to_choose_template",},
+                    {"trigger": "advance","source": "choose_template","dest": "create_img","conditions": "is_going_to_initial",},
+                    {"trigger": "advance","source": "user","dest": "input_username","conditions": "is_going_to_input_username",},
+                    {"trigger": "advance","source": "input_username","dest": "user","conditions": "is_going_to_initial",},
+                    {"trigger": "advance","source": "input_username","dest": "add_template","conditions": "is_going_to_add_template",},
                     {"trigger": "advance","source": "add_template","dest": "get_image","conditions": "is_going_to_get_image",},
                     {"trigger": "advance","source": "get_image","dest": "get_image2","conditions": "is_going_to_get_image2",},
                     {"trigger": "advance","source": "get_image2","dest": "decide_format","conditions": "is_going_to_decide_format",},
@@ -123,7 +111,14 @@ def webhook_handler():
                     {"trigger": "advance","source": "decide_format","dest": "add_template","conditions": "is_going_to_add_template_again",},
                     {"trigger": "advance","source": "choose_template","dest": "confirm","conditions": "is_going_to_confirm",},
                     {"trigger": "advance","source": "confirm","dest": "user","conditions": "is_going_to_return",},
-                    {"trigger": "advance","source": "confirm","dest": "choose_template","conditions": "is_going_to_again",},
+                    {"trigger": "advance","source": "confirm","dest": "which_needfix","conditions": "is_going_to_which_needfix",},
+                    {"trigger": "advance","source": "which_needfix","dest": "create_img","conditions": "is_going_to_create_img",}, #change_template
+                    {"trigger": "advance","source": "which_needfix","dest": "choose_template","conditions": "is_going_to_fix_text",},#change_text
+                    {"trigger": "advance","source": "which_needfix","dest": "adjust","conditions": "is_going_to_adjust",},#change_other
+                    {"trigger": "advance","source": "which_needfix","dest": "user","conditions": "is_going_to_main",},
+                    {"trigger": "advance","source": "adjust","dest": "confirm_again","conditions": "is_going_to_confirm_again",},
+                    {"trigger": "advance","source": "confirm_again","dest": "user","conditions": "is_going_to_return",},
+                    {"trigger": "advance","source": "confirm_again","dest": "which_needfix","conditions": "is_going_to_which_needfix",},
                     {"trigger": "go_back", "source": ["fsm", "what","sendmeme","create_img","choose_template"], "dest": "user"},
                 ],
                 initial="user",
@@ -136,7 +131,7 @@ def webhook_handler():
         print("REQUEST BODY: \n"+body)
         response = machine[sender_id].advance(event)
         if response == False:
-            send_text_message(event.reply_token, "Not Entering any State")
+            send_text_message(event.reply_token, "供三小")
 
     return "OK"
 
