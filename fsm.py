@@ -110,7 +110,7 @@ class TocMachine(GraphMachine):
         print("sendmeme")
         head_Html = 'https://memes.tw/wtf?sort=hot&page='+str(random.randint(1,3))
         res = requests.get(head_Html, timeout=30)
-        soup = BeautifulSoup(res.text,'lxml')
+        soup = BeautifulSoup(res.text,'html.parser')
         #print(soup2.prettify())
         imgs = soup.find_all(class_='img-fluid')
         imglist =[]
